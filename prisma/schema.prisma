@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+//
+// Modelagem definida em mimesis-brain\nearby\docs\plano-tecnico-mvp.md (secao 4).
+// accounts/users/plans/subscriptions existem so como schema pronto para depois
+// do dia 29 (auth/billing) -- sem logica de aplicacao em cima delas ainda.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// #region Leads (captura na landing)
+model Lead {
+  id        String   @id @default(cuid())
+  nome      String
+  telefone  String
+  email     String
+  origem    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("leads")
+}
+// #endregion
+
+// #region Imoveis e dossies (motor de dados)
+model Imovel {
+  id             String   @id @default(cuid())
+  accountId      String?  @map("account_id")
+  urlOrigem      String   @map("url_origem")
+  endereco       String
+  latitude       Float?
+  longitude      Float?
+  preco          Float?
+  area           Float?
+  quartos        Int?
+  vagas          Int?
+  dadosExtraidos Json?    @map("dados_extraidos")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  account Account? @relation(fields: [accountId], references: [id])
+  dossies Dossie[]
+
+  @@map("imoveis")
+}
+
+enum StatusDossie {
+  gerando
+  pronto
+  erro
+}
+
+model Dossie {
+  id        String        @id @default(cuid())
+  imovelId  String        @map("imovel_id")
+  status    StatusDossie  @default(gerando)
+  dadosJson Json?         @map("dados_json")
+  geradoEm  DateTime?     @map("gerado_em")
+
+  imovel Imovel @relation(fields: [imovelId], references: [id])
+
+  @@map("dossies")
+}
+
+model PoiCache {
+  id        String @id @default(cuid())
+  categoria String
+  nome      String
+  latitude  Float
+  longitude Float
+  fonte     String
+  geohash   String
+
+  @@index([geohash])
+  @@map("pois_cache")
+}
+// #endregion
+
+// #region Preparado para depois (billing/multi-tenant) -- sem logica ainda
+model Account {
+  id            String @id @default(cuid())
+  nomeImobiliaria String @map("nome_imobiliaria")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  users         User[]
+  imoveis       Imovel[]
+  subscriptions Subscription[]
+
+  @@map("accounts")
+}
+
+model User {
+  id        String @id @default(cuid())
+  accountId String @map("account_id")
+  nome      String
+  email     String @unique
+
+  account Account @relation(fields: [accountId], references: [id])
+
+  @@map("users")
+}
+
+model Plan {
+  id             String @id @default(cuid())
+  nome           String
+  precoCentavos  Int    @map("preco_centavos")
+  limiteImoveis  Int    @map("limite_imoveis")
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                     String @id @default(cuid())
+  accountId              String @map("account_id")
+  planId                 String @map("plan_id")
+  status                 String
+  gatewayCustomerId      String? @map("gateway_customer_id")
+  gatewaySubscriptionId  String? @map("gateway_subscription_id")
+
+  account Account @relation(fields: [accountId], references: [id])
+  plan    Plan    @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+// #endregion
