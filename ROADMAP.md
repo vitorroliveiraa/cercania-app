@@ -5,7 +5,8 @@ Checklist derivado de `mimesis-brain\nearby\docs\plano-tecnico-mvp.md` (seção 
 ## Fase 0 — Setup
 - [x] Next.js (App Router) + TypeScript + Tailwind inicializado
 - [x] Prisma configurado (schema com todos os modelos da seção 4 do plano técnico, client gerado, driver adapter `@prisma/adapter-pg`) — falta só apontar `DATABASE_URL` para um projeto Neon real
-- [ ] Deploy inicial no Vercel funcionando (app vazio, mas publicado)
+- [x] Repositório no GitHub (`git@github.com:vitorroliveiraa/nearby-app.git`, branch `master`)
+- [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://nearby-app-vert.vercel.app, `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
 
 ## Fase 1 — Motor de dados (maior risco técnico — priorizar)
 - [ ] Testar Apify (actor genérico de crawling) contra 2-3 anúncios reais dos portais que o Wagner usa
