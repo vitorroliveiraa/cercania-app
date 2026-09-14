@@ -9,11 +9,13 @@ Checklist derivado de `mimesis-brain\nearby\docs\plano-tecnico-mvp.md` (seção 
 - [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://nearby-app-vert.vercel.app, `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
 
 ## Fase 1 — Motor de dados (maior risco técnico — priorizar)
-- [ ] Testar Apify (actor genérico de crawling) contra 2-3 anúncios reais dos portais que o Wagner usa
-- [ ] Plano B (Playwright direto) testado, caso Apify não sirva
-- [ ] Extração de dados estruturados do imóvel via Claude (endereço, preço, área, quartos, vagas, fotos)
-- [ ] Geocoding via Nominatim funcionando
-- [ ] Validar cobertura do Nominatim/Overpass nas regiões-alvo (João Pessoa/Recife/Natal)
+- [ ] Testar Apify (actor genérico de crawling) contra 2-3 anúncios reais — código pronto (`src/lib/scraping/apify.ts`), **bloqueado por falta de `APIFY_TOKEN`** (Vitor vai criar conta nova pro Nearby)
+- [x] Plano B (Playwright direto) testado — `scripts/scrape-playwright.ts` funciona (validado contra Wikipedia), mas **VivaReal bloqueou via Cloudflare** e Imovelweb retornou vazio — confirma o risco de anti-bot já mapeado; Apify é ainda mais necessário como plano A
+- [x] Extração de dados estruturados do imóvel via Claude — código pronto (`src/lib/extracao/imovel.ts`, tool use + Zod), **bloqueado por falta de `ANTHROPIC_API_KEY`** (Vitor vai confirmar se usa Anthropic direto ou outro provedor)
+- [x] Geocoding via Nominatim funcionando — testado com endereço real de João Pessoa, resultado correto
+- [x] Validar cobertura do Nominatim/Overpass nas regiões-alvo — testado João Pessoa (Bairro dos Estados) e Recife (Boa Viagem): hospital/mercado/escola/praia cobertos. Achado técnico: praia é mapeada como `way`, não `node` — Overpass precisa de `nwr` (node/way/relation) + `out center`, não só `node[...]` (relevante pra Fase 2)
+
+**Pipeline completo montado** (`src/lib/pipeline/importar-imovel.ts` + `POST /api/imoveis`, protegida por senha simples via header `x-ferramenta-interna-senha` + `FERRAMENTA_INTERNA_SENHA`), mas **não testado ponta a ponta** — falta `APIFY_TOKEN` e `ANTHROPIC_API_KEY`. Pendências claras, sem ambiguidade sobre o que falta.
 
 ## Fase 2 — POIs e argumentos
 - [ ] Busca de POIs via Overpass API (categorias: praia, mercado, escola, hospital, farmácia, restaurante — confirmar com Wagner)
