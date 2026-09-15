@@ -9,13 +9,14 @@ Checklist derivado de `mimesis-brain\nearby\docs\plano-tecnico-mvp.md` (seção 
 - [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://nearby-app-vert.vercel.app, `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
 
 ## Fase 1 — Motor de dados (maior risco técnico — priorizar)
-- [ ] Testar Apify (actor genérico de crawling) contra 2-3 anúncios reais — código pronto (`src/lib/scraping/apify.ts`), **bloqueado por falta de `APIFY_TOKEN`** (Vitor vai criar conta nova pro Nearby)
+- [x] Apify testado contra site real com anti-bot — `src/lib/scraping/apify.ts`, `APIFY_TOKEN` configurado (local + Vercel Prod/Preview). Rodou contra categoria da OLX: levou 403, crawler rotacionou sessão e conseguiu (proxy unblocker entrou quando precisou). **Falta**: uma URL de anúncio individual real pra fechar o teste ponta a ponta (descoberta automática via crawl profundidade 1 falhou 2x — OLX/Imovelweb resistiram; pedir URL direto ao Vitor)
 - [x] Plano B (Playwright direto) testado — `scripts/scrape-playwright.ts` funciona (validado contra Wikipedia), mas **VivaReal bloqueou via Cloudflare** e Imovelweb retornou vazio — confirma o risco de anti-bot já mapeado; Apify é ainda mais necessário como plano A
-- [x] Extração de dados estruturados do imóvel via Claude — código pronto (`src/lib/extracao/imovel.ts`, tool use + Zod), **bloqueado por falta de `ANTHROPIC_API_KEY`** (Vitor vai confirmar se usa Anthropic direto ou outro provedor)
+- [x] Limpeza de HTML antes do Claude — `src/lib/scraping/limpar-html.ts` (cheerio), pedido pelo Vitor por custo. 91% de redução validada (Wikipedia). Fotos extraídas deterministicamente (não pelo LLM)
+- [x] Extração de dados estruturados do imóvel via Claude — `src/lib/extracao/imovel.ts` (tool use + Zod), migrado pra **Haiku 4.5** (custo; Sonnet reservado pra Fase 2/argumentos de venda). `ANTHROPIC_API_KEY` configurado (local + Vercel)
 - [x] Geocoding via Nominatim funcionando — testado com endereço real de João Pessoa, resultado correto
 - [x] Validar cobertura do Nominatim/Overpass nas regiões-alvo — testado João Pessoa (Bairro dos Estados) e Recife (Boa Viagem): hospital/mercado/escola/praia cobertos. Achado técnico: praia é mapeada como `way`, não `node` — Overpass precisa de `nwr` (node/way/relation) + `out center`, não só `node[...]` (relevante pra Fase 2)
 
-**Pipeline completo montado** (`src/lib/pipeline/importar-imovel.ts` + `POST /api/imoveis`, protegida por senha simples via header `x-ferramenta-interna-senha` + `FERRAMENTA_INTERNA_SENHA`), mas **não testado ponta a ponta** — falta `APIFY_TOKEN` e `ANTHROPIC_API_KEY`. Pendências claras, sem ambiguidade sobre o que falta.
+**Pipeline completo montado e deployado** (`src/lib/pipeline/importar-imovel.ts` + `POST /api/imoveis`, protegida por senha simples via header `x-ferramenta-interna-senha` + `FERRAMENTA_INTERNA_SENHA`, todas as 4 credenciais configuradas em Production/Preview). **Falta só**: 1 URL real de anúncio individual pra rodar o teste ponta a ponta completo (scraping → limpeza → extração Haiku → geocoding → save no Postgres) e fechar a Fase 1 de verdade.
 
 ## Fase 2 — POIs e argumentos
 - [ ] Busca de POIs via Overpass API (categorias: praia, mercado, escola, hospital, farmácia, restaurante — confirmar com Wagner)
