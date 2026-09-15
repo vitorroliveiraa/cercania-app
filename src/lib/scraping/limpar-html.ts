@@ -26,6 +26,25 @@ const TAGS_DE_RUIDO = [
 const ATRIBUTOS_PARA_REMOVER_PREFIXO = ["on", "data-"];
 const MAX_FOTOS = 20;
 
+// Paginas de anuncio costumam ter um mapa embutido (Leaflet/Google Maps) --
+// os tiles do mapa entram como <img> mas nao sao foto do imovel.
+const HOSTS_DE_TILE_DE_MAPA = [
+  "tile.openstreetmap.org",
+  "tiles.mapbox.com",
+  "api.mapbox.com",
+  "maps.googleapis.com",
+  "maps.gstatic.com",
+];
+
+function ehTileDeMapa(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return HOSTS_DE_TILE_DE_MAPA.some((sufixo) => host.endsWith(sufixo));
+  } catch {
+    return false;
+  }
+}
+
 export interface HtmlLimpo {
   texto: string;
   fotos: string[];
@@ -43,7 +62,10 @@ export function limparHtml(htmlBruto: string, urlBase: string): HtmlLimpo {
       $(img).attr("src") ?? $(img).attr("data-src") ?? $(img).attr("data-lazy-src");
     if (!src) return;
     try {
-      fotos.add(new URL(src, urlBase).toString());
+      const urlAbsoluta = new URL(src, urlBase).toString();
+      if (!ehTileDeMapa(urlAbsoluta)) {
+        fotos.add(urlAbsoluta);
+      }
     } catch {
       // URL invalida/relativa sem base util -- ignora.
     }

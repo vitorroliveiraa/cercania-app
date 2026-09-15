@@ -29,6 +29,13 @@ export async function rasparAnuncioViaApify(
     maxCrawlPages: 1,
     maxCrawlDepth: 0,
     crawlerType: "playwright:adaptive",
+    // O transformer padrao (readability) descarta endereco/fotos/area em
+    // sites client-rendered -- validado contra mybroker.com.br (HTML util
+    // caiu de dezenas de milhares de chars pra 606). "None" + selector
+    // inexistente preserva o HTML renderizado intacto; a limpeza real
+    // (script/style/nav/etc) fica por conta de limpar-html.ts.
+    htmlTransformer: "none",
+    removeElementsCssSelector: "nearby_nao_remover_nada",
     saveHtmlAsFile: true,
   });
 
