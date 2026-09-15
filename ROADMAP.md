@@ -8,15 +8,15 @@ Checklist derivado de `mimesis-brain\nearby\docs\plano-tecnico-mvp.md` (seção 
 - [x] Repositório no GitHub (`git@github.com:vitorroliveiraa/nearby-app.git`, branch `master`)
 - [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://nearby-app-vert.vercel.app, `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
 
-## Fase 1 — Motor de dados (maior risco técnico — priorizar)
-- [x] Apify testado contra site real com anti-bot — `src/lib/scraping/apify.ts`, `APIFY_TOKEN` configurado (local + Vercel Prod/Preview). Rodou contra categoria da OLX: levou 403, crawler rotacionou sessão e conseguiu (proxy unblocker entrou quando precisou). **Falta**: uma URL de anúncio individual real pra fechar o teste ponta a ponta (descoberta automática via crawl profundidade 1 falhou 2x — OLX/Imovelweb resistiram; pedir URL direto ao Vitor)
+## Fase 1 — Motor de dados (maior risco técnico — priorizar) ✅ FECHADA
+- [x] Apify testado contra site real com anti-bot e contra anúncio individual real (mybroker.com.br, imobiliária que o Vitor vai atuar em João Pessoa) — `src/lib/scraping/apify.ts`, `APIFY_TOKEN` configurado (local + Vercel Prod/Preview). Achado corrigido: `crawlerType: adaptive` aplicava a própria transformação "readability" do Apify antes de retornar o HTML, cortando endereço/área/fotos em sites client-rendered (React/SPA) — corrigido com `htmlTransformer: "none"`
 - [x] Plano B (Playwright direto) testado — `scripts/scrape-playwright.ts` funciona (validado contra Wikipedia), mas **VivaReal bloqueou via Cloudflare** e Imovelweb retornou vazio — confirma o risco de anti-bot já mapeado; Apify é ainda mais necessário como plano A
 - [x] Limpeza de HTML antes do Claude — `src/lib/scraping/limpar-html.ts` (cheerio), pedido pelo Vitor por custo. 91% de redução validada (Wikipedia). Fotos extraídas deterministicamente (não pelo LLM)
 - [x] Extração de dados estruturados do imóvel via Claude — `src/lib/extracao/imovel.ts` (tool use + Zod), migrado pra **Haiku 4.5** (custo; Sonnet reservado pra Fase 2/argumentos de venda). `ANTHROPIC_API_KEY` configurado (local + Vercel)
 - [x] Geocoding via Nominatim funcionando — testado com endereço real de João Pessoa, resultado correto
 - [x] Validar cobertura do Nominatim/Overpass nas regiões-alvo — testado João Pessoa (Bairro dos Estados) e Recife (Boa Viagem): hospital/mercado/escola/praia cobertos. Achado técnico: praia é mapeada como `way`, não `node` — Overpass precisa de `nwr` (node/way/relation) + `out center`, não só `node[...]` (relevante pra Fase 2)
 
-**Pipeline completo montado e deployado** (`src/lib/pipeline/importar-imovel.ts` + `POST /api/imoveis`, protegida por senha simples via header `x-ferramenta-interna-senha` + `FERRAMENTA_INTERNA_SENHA`, todas as 4 credenciais configuradas em Production/Preview). **Falta só**: 1 URL real de anúncio individual pra rodar o teste ponta a ponta completo (scraping → limpeza → extração Haiku → geocoding → save no Postgres) e fechar a Fase 1 de verdade.
+**Pipeline testado ponta a ponta com sucesso contra anúncio real**: https://www.mybroker.com.br/apartamento/pb/joao-pessoa/ponta-do-seixas/352176 — endereço, área (69m²), quartos (2), vagas (1), preço (R$ 1.067.668,66) e 20 fotos reais extraídos corretamente, geocoding certo (Ponta do Seixas, João Pessoa). `POST /api/imoveis` protegida por senha simples via header `x-ferramenta-interna-senha` + `FERRAMENTA_INTERNA_SENHA`, todas as 4 credenciais configuradas em Production/Preview e deployado.
 
 ## Fase 2 — POIs e argumentos
 - [ ] Busca de POIs via Overpass API (categorias: praia, mercado, escola, hospital, farmácia, restaurante — confirmar com Wagner)
