@@ -1,6 +1,12 @@
-// Extracao de dados estruturados do imovel a partir do texto bruto da
-// pagina do anuncio, via Claude. Evita parser fragil por portal -- ver
-// mimesis-brain/nearby/docs/decisoes.md.
+// Extracao de dados estruturados do imovel a partir do texto ja limpo da
+// pagina do anuncio (ver src/lib/scraping/limpar-html.ts), via Claude.
+// Evita parser fragil por portal -- ver mimesis-brain/nearby/docs/decisoes.md.
+//
+// Fotos NAO sao extraidas aqui: URLs sao dado estrutural (atributo src),
+// nao conteudo semantico -- pedir pro LLM adivinhar URL de imagem em meio
+// a texto e caro e propenso a erro (um digito errado na query string ja
+// quebra a foto). Extraidas deterministicamente via cheerio em limparHtml
+// e mescladas pelo chamador (src/lib/pipeline/importar-imovel.ts).
 
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
@@ -13,7 +19,6 @@ export const DadosImovelExtraidosSchema = z.object({
   area: z.number().nullable().describe("Area em metros quadrados"),
   quartos: z.number().int().nullable(),
   vagas: z.number().int().nullable().describe("Vagas de garagem"),
-  fotos: z.array(z.string().url()).describe("URLs das fotos do imovel"),
 });
 
 export type DadosImovelExtraidos = z.infer<typeof DadosImovelExtraidosSchema>;
@@ -32,14 +37,13 @@ const FERRAMENTA_EXTRACAO: Anthropic.Tool = {
       area: { type: ["number", "null"] },
       quartos: { type: ["integer", "null"] },
       vagas: { type: ["integer", "null"] },
-      fotos: { type: "array", items: { type: "string" } },
     },
-    required: ["endereco", "preco", "area", "quartos", "vagas", "fotos"],
+    required: ["endereco", "preco", "area", "quartos", "vagas"],
   },
 };
 
 export async function extrairDadosImovel(
-  textoBruto: string,
+  textoLimpo: string,
 ): Promise<DadosImovelExtraidos> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -49,14 +53,14 @@ export async function extrairDadosImovel(
   const client = new Anthropic({ apiKey });
 
   const resposta = await client.messages.create({
-    model: "claude-sonnet-5",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     tools: [FERRAMENTA_EXTRACAO],
     tool_choice: { type: "tool", name: FERRAMENTA_EXTRACAO.name },
     messages: [
       {
         role: "user",
-        content: `Extraia os dados estruturados do imovel a partir do texto abaixo, extraido de uma pagina de anuncio imobiliario. Se um campo nao estiver presente no texto, use null (ou array vazio para fotos). Nao invente dados.\n\n---\n${textoBruto.slice(0, 40_000)}`,
+        content: `Extraia os dados estruturados do imovel a partir do texto abaixo, extraido de uma pagina de anuncio imobiliario. Se um campo nao estiver presente no texto, use null. Nao invente dados.\n\n---\n${textoLimpo.slice(0, 40_000)}`,
       },
     ],
   });

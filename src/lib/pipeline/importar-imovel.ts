@@ -1,17 +1,19 @@
 // Orquestra o motor de dados: URL do anuncio -> scraping (Apify) ->
-// extracao estruturada (Claude) -> geocoding (Nominatim) -> registro no banco.
-// Scraping via Playwright local (plano B) fica fora deste pipeline --
-// ver scripts/scrape-playwright.ts.
+// limpeza do HTML -> extracao estruturada (Claude) -> geocoding (Nominatim)
+// -> registro no banco. Scraping via Playwright local (plano B) fica fora
+// deste pipeline -- ver scripts/scrape-playwright.ts.
 
 import { prisma } from "@/lib/prisma";
 import { rasparAnuncioViaApify } from "@/lib/scraping/apify";
+import { limparHtml } from "@/lib/scraping/limpar-html";
 import { extrairDadosImovel } from "@/lib/extracao/imovel";
 import { geocodificarEndereco } from "@/lib/geocoding/nominatim";
 import type { Imovel } from "@/generated/prisma/client";
 
 export async function importarImovelPorUrl(url: string): Promise<Imovel> {
-  const { textoBruto } = await rasparAnuncioViaApify(url);
-  const dadosExtraidos = await extrairDadosImovel(textoBruto);
+  const { html } = await rasparAnuncioViaApify(url);
+  const { texto, fotos } = limparHtml(html, url);
+  const dadosExtraidos = await extrairDadosImovel(texto);
   const geocoding = await geocodificarEndereco(dadosExtraidos.endereco);
 
   return prisma.imovel.create({
@@ -24,7 +26,7 @@ export async function importarImovelPorUrl(url: string): Promise<Imovel> {
       area: dadosExtraidos.area,
       quartos: dadosExtraidos.quartos,
       vagas: dadosExtraidos.vagas,
-      dadosExtraidos: dadosExtraidos,
+      dadosExtraidos: { ...dadosExtraidos, fotos },
     },
   });
 }

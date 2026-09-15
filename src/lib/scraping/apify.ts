@@ -9,7 +9,7 @@ export class ErroScrapingApify extends Error {}
 
 export interface ConteudoPaginaRaspada {
   url: string;
-  textoBruto: string;
+  html: string;
 }
 
 export async function rasparAnuncioViaApify(
@@ -29,18 +29,24 @@ export async function rasparAnuncioViaApify(
     maxCrawlPages: 1,
     maxCrawlDepth: 0,
     crawlerType: "playwright:adaptive",
+    saveHtmlAsFile: true,
   });
 
   const { items } = await client
-    .dataset<{ url: string; text?: string }>(run.defaultDatasetId)
+    .dataset<{ url: string; htmlUrl?: string }>(run.defaultDatasetId)
     .listItems();
 
   const [item] = items;
-  if (!item?.text) {
+  if (!item?.htmlUrl) {
+    throw new ErroScrapingApify(`Apify nao retornou HTML para a URL: ${url}`);
+  }
+
+  const respostaHtml = await fetch(item.htmlUrl);
+  if (!respostaHtml.ok) {
     throw new ErroScrapingApify(
-      `Apify nao retornou texto para a URL: ${url}`,
+      `Falha ao baixar HTML armazenado pelo Apify (${respostaHtml.status}) para: ${url}`,
     );
   }
 
-  return { url: item.url ?? url, textoBruto: item.text };
+  return { url: item.url ?? url, html: await respostaHtml.text() };
 }

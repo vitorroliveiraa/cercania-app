@@ -4,6 +4,7 @@
 // Uso: npx tsx scripts/scrape-playwright.ts <url>
 
 import { chromium } from "playwright";
+import { limparHtml } from "@/lib/scraping/limpar-html";
 
 async function main() {
   const url = process.argv[2];
@@ -16,11 +17,15 @@ async function main() {
   try {
     const pagina = await browser.newPage();
     await pagina.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
-    const textoBruto = await pagina.evaluate(() => document.body.innerText);
+    const html = await pagina.content();
 
-    console.log(`--- Texto extraido de ${url} (${textoBruto.length} chars) ---`);
-    console.log(textoBruto.slice(0, 3000));
-    console.log("--- (truncado se maior que 3000 chars) ---");
+    const { texto, fotos } = limparHtml(html, url);
+
+    console.log(`--- HTML bruto: ${html.length} chars | texto limpo: ${texto.length} chars (${Math.round((1 - texto.length / html.length) * 100)}% reduzido) ---`);
+    console.log(`--- ${fotos.length} foto(s) encontrada(s) ---`);
+    console.log(fotos.slice(0, 5).join("\n"));
+    console.log("--- Texto limpo (preview) ---");
+    console.log(texto.slice(0, 3000));
   } finally {
     await browser.close();
   }
