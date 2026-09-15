@@ -28,19 +28,35 @@ model Lead {
 // #endregion
 
 // #region Imoveis e dossies (motor de dados)
+// Convencao: todas as areas em metros quadrados (m2), padrao do mercado
+// imobiliario brasileiro -- nunca outra unidade, nao precisa de coluna
+// separada pra unidade.
+//
+// Campos comuns o bastante entre portais BR pra virar coluna propria
+// (area total/privativa, suites, condominio, IPTU) ficam tipados e nullable
+// -- null quando o site de origem nao informa. Qualquer outro dado que so
+// aparece em alguns sites (andar, aceita pet, ano de construcao, etc) vai
+// em `caracteristicasAdicionais` (dentro de dadosExtraidos), sem exigir
+// migracao de schema a cada portal novo. Motivo de guardar tudo isso mesmo
+// sem usar no MVP: alimentar analise preditiva de valorizacao/depreciacao
+// mais pra frente.
 model Imovel {
-  id             String   @id @default(cuid())
-  accountId      String?  @map("account_id")
-  urlOrigem      String   @map("url_origem")
-  endereco       String
-  latitude       Float?
-  longitude      Float?
-  preco          Float?
-  area           Float?
-  quartos        Int?
-  vagas          Int?
-  dadosExtraidos Json?    @map("dados_extraidos")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id                     String   @id @default(cuid())
+  accountId              String?  @map("account_id")
+  urlOrigem              String   @map("url_origem")
+  endereco               String
+  latitude               Float?
+  longitude              Float?
+  preco                  Float?
+  areaTotal              Float?   @map("area_total")
+  areaPrivativa          Float?   @map("area_privativa")
+  quartos                Int?
+  suites                 Int?
+  vagas                  Int?
+  condominio             Float?
+  iptu                   Float?
+  dadosExtraidos         Json?    @map("dados_extraidos")
+  createdAt              DateTime @default(now()) @map("created_at")
 
   account Account? @relation(fields: [accountId], references: [id])
   dossies Dossie[]
