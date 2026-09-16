@@ -1,6 +1,6 @@
 // Extracao de dados estruturados do imovel a partir do texto ja limpo da
 // pagina do anuncio (ver src/lib/scraping/limpar-html.ts), via Claude.
-// Evita parser fragil por portal -- ver mimesis-brain/nearby/docs/decisoes.md.
+// Evita parser fragil por portal -- ver mimesis-brain/cercania/docs/decisoes.md.
 //
 // Fotos NAO sao extraidas aqui: URLs sao dado estrutural (atributo src),
 // nao conteudo semantico -- pedir pro LLM adivinhar URL de imagem em meio

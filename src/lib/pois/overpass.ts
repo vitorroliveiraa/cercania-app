@@ -1,7 +1,7 @@
 // Busca de POIs via Overpass API (OpenStreetMap) -- gratuito, sem cartao.
 // Usa nwr (node/way/relation) + "out center", nao so node[...] -- praia e
 // outros POIs de area/linha ficam de fora com node puro (achado da Fase 1,
-// ver mimesis-brain/nearby/docs/decisoes.md).
+// ver mimesis-brain/cercania/docs/decisoes.md).
 //
 // Cache em Postgres por geohash da regiao (pois_cache): evita rebater a
 // API pro mesmo raio, respeita a politica de uso do Overpass (nao fazer
@@ -13,7 +13,7 @@ import { geohashEncode } from "@/lib/geohash";
 import { calcularDistanciaHaversine } from "./distancia";
 
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
-const USER_AGENT = "NearbyApp/0.1 (contato: vittorhuggolds@gmail.com)";
+const USER_AGENT = "CercaniaApp/0.1 (contato: vittorhuggolds@gmail.com)";
 const PRECISAO_GEOHASH = 5;
 
 export type CategoriaPoi =

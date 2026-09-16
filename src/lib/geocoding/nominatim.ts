@@ -4,7 +4,7 @@
 // https://operations.osmfoundation.org/policies/nominatim/
 
 const NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org/search";
-const USER_AGENT = "NearbyApp/0.1 (contato: vittorhuggolds@gmail.com)";
+const USER_AGENT = "CercaniaApp/0.1 (contato: vittorhuggolds@gmail.com)";
 
 export interface ResultadoGeocoding {
   latitude: number;

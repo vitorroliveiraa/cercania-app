@@ -1,12 +1,12 @@
 # Roadmap — MVP até 29/09/2026
 
-Checklist derivado de `mimesis-brain\nearby\docs\plano-tecnico-mvp.md` (seção 5). Marcar aqui conforme avança; ao fechar cada fase, registrar o que mudou de fato em `mimesis-brain\nearby\docs\decisoes.md`.
+Checklist derivado de `mimesis-brain\cercania\docs\plano-tecnico-mvp.md` (seção 5). Marcar aqui conforme avança; ao fechar cada fase, registrar o que mudou de fato em `mimesis-brain\cercania\docs\decisoes.md`.
 
 ## Fase 0 — Setup
 - [x] Next.js (App Router) + TypeScript + Tailwind inicializado
 - [x] Prisma configurado (schema com todos os modelos da seção 4 do plano técnico, client gerado, driver adapter `@prisma/adapter-pg`) — falta só apontar `DATABASE_URL` para um projeto Neon real
-- [x] Repositório no GitHub (`git@github.com:vitorroliveiraa/nearby-app.git`, branch `master`)
-- [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://nearby-app-oficial.vercel.app, `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
+- [x] Repositório no GitHub (`git@github.com:vitorroliveiraa/cercania-app.git`, branch `master` — renomeado de `nearby-app` em 2026-09-16)
+- [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://cercania-app.vercel.app (renomeado de `nearby-app-oficial` em 2026-09-16), `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
 
 ## Fase 1 — Motor de dados (maior risco técnico — priorizar) ✅ FECHADA
 - [x] Apify testado contra site real com anti-bot e contra anúncio individual real (mybroker.com.br, imobiliária que o Vitor vai atuar em João Pessoa) — `src/lib/scraping/apify.ts`, `APIFY_TOKEN` configurado (local + Vercel Prod/Preview). Achado corrigido: `crawlerType: adaptive` aplicava a própria transformação "readability" do Apify antes de retornar o HTML, cortando endereço/área/fotos em sites client-rendered (React/SPA) — corrigido com `htmlTransformer: "none"`

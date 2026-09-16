@@ -35,7 +35,7 @@ export async function rasparAnuncioViaApify(
     // inexistente preserva o HTML renderizado intacto; a limpeza real
     // (script/style/nav/etc) fica por conta de limpar-html.ts.
     htmlTransformer: "none",
-    removeElementsCssSelector: "nearby_nao_remover_nada",
+    removeElementsCssSelector: "cercania_nao_remover_nada",
     saveHtmlAsFile: true,
   });
 

@@ -1,7 +1,7 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 //
-// Modelagem definida em mimesis-brain\nearby\docs\plano-tecnico-mvp.md (secao 4).
+// Modelagem definida em mimesis-brain\cercania\docs\plano-tecnico-mvp.md (secao 4).
 // accounts/users/plans/subscriptions existem so como schema pronto para depois
 // do dia 29 (auth/billing) -- sem logica de aplicacao em cima delas ainda.
 
