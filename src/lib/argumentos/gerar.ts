@@ -11,6 +11,8 @@ import type { CategoriaPoi } from "@/lib/pois/overpass";
 export interface PoiComDistancia {
   categoria: CategoriaPoi;
   nome: string;
+  latitude: number;
+  longitude: number;
   distanciaMetros: number;
   tempoAPeMinutos: number;
   tempoDeCarroMinutos: number;
@@ -68,7 +70,7 @@ export async function gerarArgumentosDeVenda(
   const listaPois = pois
     .map(
       (p) =>
-        `- ${p.categoria}: ${p.nome} (${p.tempoAPeMinutos} min a pe / ${p.tempoDeCarroMinutos} min de carro, ${p.distanciaMetros}m)`,
+        `- ${p.categoria}: ${p.nome} (${p.tempoAPeMinutos} min a pé / ${p.tempoDeCarroMinutos} min de carro, ${p.distanciaMetros}m)`,
     )
     .join("\n");
 
@@ -80,7 +82,7 @@ export async function gerarArgumentosDeVenda(
     messages: [
       {
         role: "user",
-        content: `Voce e um corretor de imoveis experiente. Abaixo esta a lista de pontos de interesse proximos a um imovel, com distancia e tempo estimado. Para CADA item da lista, escreva um argumento de venda curto (uma frase, no maximo ~20 palavras), natural e persuasivo -- nao uma lista de dados. Foque em beneficio pra quem mora ali, nao so no fato. Exemplo de tom: "a 6 min a pe da praia -- otimo pra quem busca lazer no fim do dia".\n\nPontos de interesse:\n${listaPois}`,
+        content: `Você é um corretor de imóveis experiente. Abaixo está a lista de pontos de interesse próximos a um imóvel, com distância e tempo estimado. Para CADA item da lista, escreva um argumento de venda curto (uma frase, no máximo ~20 palavras), natural e persuasivo -- não uma lista de dados. Foque no benefício pra quem mora ali, não só no fato. Use acentuação e ortografia corretas do português do Brasil. Exemplo de tom: "a 6 min a pé da praia -- ótimo pra quem busca lazer no fim do dia".\n\nPontos de interesse:\n${listaPois}`,
       },
     ],
   });

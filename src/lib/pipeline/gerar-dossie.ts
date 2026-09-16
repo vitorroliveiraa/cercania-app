@@ -38,6 +38,8 @@ export async function gerarDossie(imovelId: string): Promise<Dossie> {
       ({ poi, estimativa }) => ({
         categoria: poi.categoria,
         nome: poi.nome,
+        latitude: poi.latitude,
+        longitude: poi.longitude,
         distanciaMetros: estimativa.distanciaMetros,
         tempoAPeMinutos: estimativa.tempoAPeMinutos,
         tempoDeCarroMinutos: estimativa.tempoDeCarroMinutos,

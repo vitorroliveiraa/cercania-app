@@ -15,6 +15,11 @@ import { calcularDistanciaHaversine } from "./distancia";
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
 const USER_AGENT = "CercaniaApp/0.1 (contato: vittorhuggolds@gmail.com)";
 const PRECISAO_GEOHASH = 5;
+// Sentinela de "cache negativo": categoria sem nenhum POI no raio, nesta
+// regiao. Sem isso, categoria vazia nunca fica marcada como "ja verificada"
+// e toda chamada nova volta a bater no Overpass -- achado real: causou 504
+// por repetir a mesma busca vazia varias vezes seguidas.
+const MARCADOR_SEM_RESULTADO = "__sem_resultado__";
 
 export type CategoriaPoi =
   | "praia"
@@ -82,28 +87,46 @@ export async function buscarPoisProximos(
       longitude,
       categoriasFaltando,
     );
-    if (encontrados.length > 0) {
-      await prisma.poiCache.createMany({
-        data: encontrados.map((p) => ({
-          categoria: p.categoria,
-          nome: p.nome,
-          latitude: p.latitude,
-          longitude: p.longitude,
-          fonte: "overpass",
-          geohash,
-        })),
-      });
+
+    const categoriasEncontradas = new Set(encontrados.map((p) => p.categoria));
+    const categoriasSemResultado = categoriasFaltando.filter(
+      (c) => !categoriasEncontradas.has(c.categoria),
+    );
+
+    const linhasParaCache = [
+      ...encontrados.map((p) => ({
+        categoria: p.categoria,
+        nome: p.nome,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        fonte: "overpass",
+        geohash,
+      })),
+      ...categoriasSemResultado.map((c) => ({
+        categoria: c.categoria,
+        nome: MARCADOR_SEM_RESULTADO,
+        latitude,
+        longitude,
+        fonte: "overpass",
+        geohash,
+      })),
+    ];
+
+    if (linhasParaCache.length > 0) {
+      await prisma.poiCache.createMany({ data: linhasParaCache });
     }
   }
 
   const todosDoCache = await prisma.poiCache.findMany({ where: { geohash } });
 
-  const pois: Poi[] = todosDoCache.map((p) => ({
-    categoria: p.categoria as CategoriaPoi,
-    nome: p.nome,
-    latitude: p.latitude,
-    longitude: p.longitude,
-  }));
+  const pois: Poi[] = todosDoCache
+    .filter((p) => p.nome !== MARCADOR_SEM_RESULTADO)
+    .map((p) => ({
+      categoria: p.categoria as CategoriaPoi,
+      nome: p.nome,
+      latitude: p.latitude,
+      longitude: p.longitude,
+    }));
 
   return filtrarPorRaioDaCategoria(pois, latitude, longitude);
 }

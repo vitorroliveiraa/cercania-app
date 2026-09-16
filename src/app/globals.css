@@ -1,26 +1,29 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-verde-cercania: #3d6b4f;
+  --color-verde-mata: #22301f;
+  --color-terracota: #c77b3e;
+  --color-terracota-claro: #f2a25c;
+  --color-areia: #f7f4ee;
+  --color-cinza-oliva: #5b6152;
+  --color-borda-neutra: #e3dfd3;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-verde-cercania: var(--color-verde-cercania);
+  --color-verde-mata: var(--color-verde-mata);
+  --color-terracota: var(--color-terracota);
+  --color-terracota-claro: var(--color-terracota-claro);
+  --color-areia: var(--color-areia);
+  --color-cinza-oliva: var(--color-cinza-oliva);
+  --color-borda-neutra: var(--color-borda-neutra);
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-manrope);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-areia);
+  color: var(--color-verde-mata);
 }
