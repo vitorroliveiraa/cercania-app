@@ -6,7 +6,7 @@ Checklist derivado de `mimesis-brain\nearby\docs\plano-tecnico-mvp.md` (seção 
 - [x] Next.js (App Router) + TypeScript + Tailwind inicializado
 - [x] Prisma configurado (schema com todos os modelos da seção 4 do plano técnico, client gerado, driver adapter `@prisma/adapter-pg`) — falta só apontar `DATABASE_URL` para um projeto Neon real
 - [x] Repositório no GitHub (`git@github.com:vitorroliveiraa/nearby-app.git`, branch `master`)
-- [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://nearby-app-vert.vercel.app, `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
+- [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://nearby-app-oficial.vercel.app, `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
 
 ## Fase 1 — Motor de dados (maior risco técnico — priorizar) ✅ FECHADA
 - [x] Apify testado contra site real com anti-bot e contra anúncio individual real (mybroker.com.br, imobiliária que o Vitor vai atuar em João Pessoa) — `src/lib/scraping/apify.ts`, `APIFY_TOKEN` configurado (local + Vercel Prod/Preview). Achado corrigido: `crawlerType: adaptive` aplicava a própria transformação "readability" do Apify antes de retornar o HTML, cortando endereço/área/fotos em sites client-rendered (React/SPA) — corrigido com `htmlTransformer: "none"`
@@ -18,10 +18,12 @@ Checklist derivado de `mimesis-brain\nearby\docs\plano-tecnico-mvp.md` (seção 
 
 **Pipeline testado ponta a ponta com sucesso contra anúncio real**: https://www.mybroker.com.br/apartamento/pb/joao-pessoa/ponta-do-seixas/352176 — endereço, área (69m²), quartos (2), vagas (1), preço (R$ 1.067.668,66) e 20 fotos reais extraídos corretamente, geocoding certo (Ponta do Seixas, João Pessoa). `POST /api/imoveis` protegida por senha simples via header `x-ferramenta-interna-senha` + `FERRAMENTA_INTERNA_SENHA`, todas as 4 credenciais configuradas em Production/Preview e deployado.
 
-## Fase 2 — POIs e argumentos
-- [ ] Busca de POIs via Overpass API (categorias: praia, mercado, escola, hospital, farmácia, restaurante — confirmar com Wagner)
-- [ ] Cálculo de distância e tempo estimado
-- [ ] Geração dos argumentos de venda via Claude a partir dos POIs
+## Fase 2 — POIs e argumentos ✅ FECHADA
+- [x] Busca de POIs via Overpass API (categorias: praia, mercado, escola, hospital, farmácia, restaurante — lista do plano técnico; confirmação fina com Wagner fica pra Fase 5) — `src/lib/pois/overpass.ts`, query `nwr` + `out center tags`, cache em Postgres por geohash da região (`src/lib/geohash.ts`, `pois_cache`)
+- [x] Cálculo de distância e tempo estimado — `src/lib/pois/distancia.ts` (haversine + velocidade média a pé/carro, local, sem API de rotas paga)
+- [x] Geração dos argumentos de venda via Claude a partir dos POIs — `src/lib/argumentos/gerar.ts`, model **Sonnet** (extração factual usa Haiku; essa etapa é mais "criativa")
+
+**Pipeline testado ponta a ponta** (`POST /api/imoveis/[id]/dossie`) contra o mesmo imóvel real da Fase 1 (mybroker.com.br, Ponta do Seixas/JP): achou restaurante (Peixada do Amor, 7min a pé), hospital/USF (USF da Penha, 3min de carro) e praia (Praia do Seixas, 7min a pé) dentro do raio, com argumento de venda natural gerado pra cada um. Mercado/escola/farmácia não encontrados no raio configurado — geografia real do bairro (mais isolado), não bug. Autorização da ferramenta interna extraída pra `src/lib/auth/ferramenta-interna.ts` (compartilhada entre as rotas).
 
 ## Fase 3 — Dossiê público e embed
 - [ ] Página pública `/imovel/[slug]` (responsiva, com mapa)
