@@ -6,7 +6,7 @@ Checklist derivado de `mimesis-brain\cercania\docs\plano-tecnico-mvp.md` (seçã
 - [x] Next.js (App Router) + TypeScript + Tailwind inicializado
 - [x] Prisma configurado (schema com todos os modelos da seção 4 do plano técnico, client gerado, driver adapter `@prisma/adapter-pg`) — falta só apontar `DATABASE_URL` para um projeto Neon real
 - [x] Repositório no GitHub (`git@github.com:vitorroliveiraa/cercania-app.git`, branch `master` — renomeado de `nearby-app` em 2026-09-16)
-- [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — https://cercania-app.vercel.app (renomeado de `nearby-app-oficial` em 2026-09-16), `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
+- [x] Deploy inicial no Vercel funcionando (app vazio, mas publicado) — **URL canônica de produção: https://cercania-app-vittorhuggolds-gmailcoms-projects.vercel.app** (o alias curto `cercania-app.vercel.app` não acompanha deploy novo automaticamente — alias manual via `vercel alias set` fica preso no deploy do momento em que foi criado; removido pra não confundir. Domínio próprio real fica pra quando tiver assinante). `DATABASE_URL` do Neon configurado em Production e Preview, migração `init` aplicada no banco
 
 ## Fase 1 — Motor de dados (maior risco técnico — priorizar) ✅ FECHADA
 - [x] Apify testado contra site real com anti-bot e contra anúncio individual real (mybroker.com.br, imobiliária que o Vitor vai atuar em João Pessoa) — `src/lib/scraping/apify.ts`, `APIFY_TOKEN` configurado (local + Vercel Prod/Preview). Achado corrigido: `crawlerType: adaptive` aplicava a própria transformação "readability" do Apify antes de retornar o HTML, cortando endereço/área/fotos em sites client-rendered (React/SPA) — corrigido com `htmlTransformer: "none"`
@@ -25,9 +25,16 @@ Checklist derivado de `mimesis-brain\cercania\docs\plano-tecnico-mvp.md` (seçã
 
 **Pipeline testado ponta a ponta** (`POST /api/imoveis/[id]/dossie`) contra o mesmo imóvel real da Fase 1 (mybroker.com.br, Ponta do Seixas/JP): achou restaurante (Peixada do Amor, 7min a pé), hospital/USF (USF da Penha, 3min de carro) e praia (Praia do Seixas, 7min a pé) dentro do raio, com argumento de venda natural gerado pra cada um. Mercado/escola/farmácia não encontrados no raio configurado — geografia real do bairro (mais isolado), não bug. Autorização da ferramenta interna extraída pra `src/lib/auth/ferramenta-interna.ts` (compartilhada entre as rotas).
 
-## Fase 3 — Dossiê público e embed
-- [ ] Página pública `/imovel/[slug]` (responsiva, com mapa)
-- [ ] Snippet de embed (iframe) copiável
+## Fase 3 — Dossiê público e embed ✅ FECHADA
+- [x] Página pública `/imovel/[id]` (responsiva, com mapa) — `src/app/imovel/[id]/page.tsx`. Foto, endereço, preço/área/quartos/suítes/vagas, mapa real (Leaflet+OSM, pin terracota, POIs marcados), lista de POIs com distância/tempo/argumento de venda. Estados vazio/gerando/erro tratados. Testado em desktop e mobile (390px) com agent-browser
+- [x] Snippet de embed (iframe) copiável — página já é embedável por padrão (sem `X-Frame-Options` nela); snippet:
+  ```html
+  <iframe src="https://cercania-app-vittorhuggolds-gmailcoms-projects.vercel.app/imovel/SEU_ID_AQUI" width="100%" height="900" style="border:0;border-radius:12px" loading="lazy" title="Dossiê do imóvel — Cercania"></iframe>
+  ```
+
+Identidade visual aplicada: Fraunces (títulos) + Manrope (corpo), paleta da marca via CSS vars, ícones outline SVG (categoria "hospital" exibida como "Saúde" pro usuário final — achado da Fase 2 sobre UBS/USF). Headers de segurança (X-Frame-Options DENY, nosniff, HSTS, sem X-Powered-By) em todas as rotas, com exceção deliberada de `/imovel/*`.
+
+**Bugs reais corrigidos nesta fase** (achados testando com dado real, não só "buildou sem erro"): POI sem lat/lon salvo no dossiê (mapa não tinha o que plotar); categoria sem resultado no Overpass nunca ficava marcada como "já verificada" no cache — causou um 504 real; Postgres ordena `NULL` primeiro em `DESC` por padrão — página pegava tentativa antiga com erro em vez do dossiê pronto mais recente; prompt de geração de argumentos sem acentuação contaminava a resposta do Claude. Detalhes em `decisoes.md`.
 
 ## Fase 4 — Landing e captura de leads + schema de billing
 - [ ] Landing page de vendas
