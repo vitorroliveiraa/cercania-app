@@ -2,7 +2,7 @@
 
 Checklist derivado de `mimesis-brain\cercania\docs\plano-tecnico-mvp.md` (seção 5). Marcar aqui conforme avança; ao fechar cada fase, registrar o que mudou de fato em `mimesis-brain\cercania\docs\decisoes.md`.
 
-## Fase 0 — Setup
+## Fase 0 — Setup ✅ FECHADA
 - [x] Next.js (App Router) + TypeScript + Tailwind inicializado
 - [x] Prisma configurado (schema com todos os modelos da seção 4 do plano técnico, client gerado, driver adapter `@prisma/adapter-pg`) — falta só apontar `DATABASE_URL` para um projeto Neon real
 - [x] Repositório no GitHub (`git@github.com:vitorroliveiraa/cercania-app.git`, branch `master` — renomeado de `nearby-app` em 2026-09-16)
@@ -36,10 +36,24 @@ Identidade visual aplicada: Fraunces (títulos) + Manrope (corpo), paleta da mar
 
 **Bugs reais corrigidos nesta fase** (achados testando com dado real, não só "buildou sem erro"): POI sem lat/lon salvo no dossiê (mapa não tinha o que plotar); categoria sem resultado no Overpass nunca ficava marcada como "já verificada" no cache — causou um 504 real; Postgres ordena `NULL` primeiro em `DESC` por padrão — página pegava tentativa antiga com erro em vez do dossiê pronto mais recente; prompt de geração de argumentos sem acentuação contaminava a resposta do Claude. Detalhes em `decisoes.md`.
 
-## Fase 4 — Landing e captura de leads + schema de billing
-- [ ] Landing page de vendas
-- [ ] Formulário de captura de leads (nome, telefone, email) salvando no Postgres
-- [ ] Migrações das tabelas futuras de billing/multi-tenant (`accounts`, `users`, `plans`, `subscriptions`) — schema pronto, sem lógica
+## Fase 4 — Dashboard mínimo do assinante
+
+**Escopo revisado em 2026-09-17** (decisão do Vitor — detalhes em `mimesis-brain\cercania\docs\decisoes.md`, seção "Revisão de escopo da Fase 4 + dashboard do assinante", e `plano-tecnico-mvp.md` seção 3.1):
+- Landing page de vendas **saiu** do `cercania-app` — vira projeto separado (Vercel Hobby proíbe uso comercial; billing/gateway ficam lá também).
+- Formulário de leads **saiu** — vira Google Forms. Tabela `leads` do schema fica sem uso (não remover).
+- **Entrou**: dashboard mínimo do assinante (login + lista de imóveis em cards + modal de adicionar). Referência visual: tela de "Projects" da Vercel (lista de cards, sem menu lateral).
+
+Checklist:
+- [ ] Login simples (provedor/biblioteca ainda não escolhido — ver seção 4.1 do plano técnico). Login social fica pra depois
+- [ ] Página única, sem menu lateral, listando os imóveis da conta logada como cards
+- [ ] Botão "Adicionar imóvel" → modal → cola link do anúncio → dispara o pipeline já existente (Fases 1-3: scraping → extração → geocoding → POIs → argumentos → dossiê)
+- [ ] Cada card processado tem no mínimo 2 ações: copiar snippet de embed novamente, e excluir o imóvel/dossiê
+- [ ] `imoveis.account_id` passa a ser preenchido de verdade pra imóveis criados via dashboard (nullable desde a Fase 0 — a ferramenta interna sem login continua existindo em paralelo, sem account_id)
+- [ ] Migrações das tabelas de billing/multi-tenant (`accounts`, `users`, `plans`, `subscriptions`) — já existem desde a Fase 0, sem lógica de aplicação; `accounts`/`users` passam a ter uso real por causa do login
+
+**Em aberto, não esquecido** (decisão consciente de resolver depois): qual biblioteca/provedor de auth; se corretor loga direto ou só o admin da imobiliária; como uma conta é criada antes do dia 29 (provavelmente manual pelo Vitor pra demo — não confirmado explicitamente, perguntar antes de implementar).
+
+Liberdade de composição visual (organização dos cards, modal, estados de carregamento) pra quem implementar, desde que siga `docs/identidade-visual.md` — não inventar linguagem visual nova.
 
 ## Fase 5 — Curadoria e ensaio
 - [ ] 5-10 imóveis reais pré-testados como rede de segurança
